@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Aplikasi untuk menentukan pemenang berdasarkan acak angka (Winner by Rolling Number)">
+  <meta name="author" content="Armin Slater">
+  <meta name="generator" content="Hugo 0.101.0">
+  <title>Winner By Rolling Number - Acak Angka</title>
+
+  <meta name="theme-color" content="#712cf9">
+
+  <link rel="icon" href="">
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <script src="jquery.min.js"></script>
+  <script src="jquery-ui.min.js"></script>
+  <script src="bootstrap.bundle.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+        var lstWinnerNumber = [];
+        var lstWinnerItem = [];
+    
+        $('input[name=type]').change(function () {
+            if ($('input[name=type]:checked').val() == "1") {
+                $("#start").prop("disabled", false);
+                $("#end").prop("disabled", false);
+                $("#list").prop("disabled", true);
+            } else {
+                $("#start").prop("disabled", true);
+                $("#end").prop("disabled", true);
+                $("#list").prop("disabled", false);
+            }
+        });
+    
+        $('#btnRandom').click(function() {
+            var min,max;
+            var listItems = [];
+            var isTypeList = false;
+            if ($('input[name=type]:checked').val() == "1") {
+                min = parseInt($("#start").val());
+                max = parseInt($("#end").val());
+    
+                min = isNaN(min) ? 0: min;
+                max = isNaN(max) ? 0: max;
+            } else {
+                isTypeList = true;
+                var strList = $("#list").val().trim().replace(/^\s*[\r\n]/gm, '')
+                strList.split(/\r|\r\n|\n/).forEach(function(element) {
+                    if (element.trim().length > 0) {
+                        listItems.push(element.trim());
+                    }
+                });
+                listItems  = getUnique(listItems);
+                min = 0;
+                max = listItems.length - 1;
+            }
+    
+            //validate
+            if (isTypeList && listItems.length === 0) {
+                alert("Silakan masukkan daftar.");
+                $("#list").focus();
+                return;
+            } else {
+                if(min > max) {
+                    alert("jumlah minimum harus lebih kecil dari jumlah maksimum.");
+                    return;
+                }
+            }
+    
+            if (parseFloat($("#waitingTime").val()) < 0) {
+                alert("Silakan isi 'Lihat hasilnya setelah? detik ’");
+                $("#waitingTime").focus();
+                return;
+            }
+    
+            // delay time
+            var waitingTime = 0;
+            if ($("#waitingTime").val()) {
+                waitingTime = $("#waitingTime").val() * 1000;
+            }
+    
+            $("#titleResult").text("");
+            $("#currentResult").text("");
+            $("#oldResult").text("");
+            $("#btnRandom").prop("disabled", true);
+    
+            if (isTypeList && lstWinnerItem.length === listItems.length) {
+                lstWinnerItem = [];
+            } else if (lstWinnerNumber.length === (max-min+1)){
+                lstWinnerNumber = [];
+            }
+    
+            // set font size
+            if (isTypeList) {
+                $("#currentResult").css("fontSize", "90px");
+                $("#currentResult").css("min-height", "200px");
+                $("#currentResult").css("padding-top", "30px");
+            } else {
+                $("#currentResult").css("fontSize", "135px");
+                $("#currentResult").css("min-height", "");
+                $("#currentResult").css("padding-top", "");
+            }
+    
+            var random = setInterval(function(){
+                var isLoop = true;
+                var num;
+                while(isLoop) {
+                    num = getRndInteger(min, max);
+                    if (isTypeList) {
+                        if (lstWinnerItem.indexOf(listItems[num]) < 0) {
+                            $("#currentResult").text(listItems[num]);
+                            isLoop = false;
+                        }
+                    } else {
+                        if (lstWinnerNumber.indexOf(num) < 0) {
+                            $("#currentResult").text(num);
+                            isLoop = false;
+                        }
+                    }
+                }
+                
+                if(waitingTime <= 0){
+                    $("#titleResult").text("Pemenangnya adalah :")
+                    $("#btnRandom").prop("disabled", false);
+    
+                    if (isTypeList) {
+                        lstWinnerItem.push(listItems[num]);
+                        $("#oldResult").text(lstWinnerItem.join(" - "))
+                    } else {
+                        lstWinnerNumber.push(num);
+                        $("#oldResult").text(lstWinnerNumber.join(" - "))
+                    }
+                    clearInterval(random);
+                }
+                waitingTime = waitingTime - 100;
+            }, 100);
+        });
+    
+        function getRndInteger(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) ) + min;
+        }
+    
+        function getUnique(array){
+            var uniqueArray = [];
+            
+            for(i=0; i < array.length; i++){
+                if(uniqueArray.indexOf(array[i]) === -1) {
+                    uniqueArray.push(array[i]);
+                }
+            }
+            return uniqueArray;
+        }
+    });
+    
+    </script>
+    
+    <style type="text/css">
+        .multi_column_box .column_box_one {
+            max-height: 400px;
+        }
+        
+        .buttonControl {
+            max-width: 650px;
+            width: 100%;
+        }
+        
+        input[type=number] {
+            width: 80px;
+        }
+        
+        #resultArea {
+            text-align: center;
+        }
+        
+        #currentResult {
+            text-align: center;
+            /* word-wrap: break-word; */
+            color: blue;
+            font-size: 135px;
+            overflow-x: auto;
+        }
+        
+        #list {
+            margin-top: 5px;
+            overflow-y: auto;
+            resize: none;
+        }
+    
+    </style>
+</head>
+<body>
+
+<div class="container mt-3">
+    <h2>Winner by Rolling Number</h2>
+    <p>Aplikasi untuk menentukan pemenang berdasarkan acak angka (Win by Rolling Number).</p>
+
+    <div class="row shadow">
+        <div class="col-sm-5 col-md-6 p-3 border">
+            <label id="specifiedLen">
+                <span>
+                    <input type="radio" name="type" value="1" checked="" class="form-check-input">
+                    <label class="form-label">Rentang angka</label>
+                </span>
+                <div class="input-group mb-3">
+                    <input type="number" id="start" value="0" class="form-control">
+                    <span class="input-group-text"> ~ </span>
+                    <input type="number" id="end" value="100" class="form-control">
+                </div>
+            </label>
+
+            <label id="specifiedLen">
+                <div class="input-group">
+                    <span>
+                        <input type="radio" name="type" value="2" class="form-check-input">
+                        <label class="form-label">Berdasarkan list nama</label>
+                    </span>
+                    <div class="input-group mb-3">
+                        <textarea class="form-control" id="list" disabled placeholder="Silakan masukkan setiap item di baris baru." spellcheck="false" rows="6" autocomplete="off"></textarea>
+                    </div>
+                </div>
+            </label>
+            <label>
+                <div class="input-group">
+                    <span class="input-group-text">Lihat hasil dalam</span>
+                    <input type="number" id="waitingTime" value="3" class="form-control">
+                    <span class="input-group-text">detik</span>
+                </div>
+            </label>
+            <div class="d-grid mt-3">
+                <button class="btn btn-warning" type="button" id="btnRandom" class="black_btn buttonControl">Pilih secara acak</button>
+            </div>
+        </div> <!---col-sm-5--->
+
+        <div class="col-sm-5 offset-sm-2 col-md-6 offset-md-0 border">
+            <div class="column_box_one" id="resultArea">
+                <div>
+                    <p id="titleResult"></p>
+                    <p id="currentResult"></p>
+                </div>
+            <div id="oldResult"></div>
+        </div> <!----col-sm-5---->
+
+    </div> <!---row--->
+  
+</div> <!---container--->
+
+<footer class="pt-3 mt-4 text-muted border-top">
+  © 2022
+</footer>
+
+</body>
+</html>
